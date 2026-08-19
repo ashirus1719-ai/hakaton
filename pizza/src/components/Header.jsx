@@ -12,7 +12,7 @@ export default function Header({
   const [profileOpen, setProfileOpen] = useState(false);
 
   const formatPrice = (price) =>
-    {price.toLocaleString("ru-RU")}  ;
+    `${price.toLocaleString("ru-RU")} ₽`;
 
   return (
     <header className="header">
@@ -44,13 +44,9 @@ export default function Header({
         <div className="profile-container">
           <button
             className="profile-button"
-            onClick={() =>
-              setProfileOpen(!profileOpen)
-            }
+            onClick={() => setProfileOpen(!profileOpen)}
           >
-            <span className="profile-icon">
-              ♙
-            </span>
+            <span className="profile-icon">♙</span>
 
             <span>
               {user ? "Профиль" : "Войти"}
@@ -101,9 +97,7 @@ export default function Header({
 
           <span className="cart-divider"></span>
 
-          <span className="cart-icon">
-            🛒
-          </span>
+          <span className="cart-icon">🛒</span>
 
           <span className="cart-count">
             {cartCount}
