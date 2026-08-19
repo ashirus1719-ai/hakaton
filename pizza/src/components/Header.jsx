@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./Header.css";
 
-export default function Header({
+function Header({
   cartCount = 0,
   cartTotal = 0,
   user = null,
@@ -11,55 +11,44 @@ export default function Header({
 }) {
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const formatPrice = (price) =>
-    `${price.toLocaleString("ru-RU")} ₽`;
+  const formatPrice = (price) => `${price.toLocaleString("ru-RU")} ₽`;
 
   return (
     <header className="header">
-      {/* ЛОГОТИП */}
+      {/* Логотип */}
       <div className="header-logo">
         <div className="logo-icon">◢</div>
 
         <div className="logo-text">
           <div className="logo-title">NEXT PIZZA</div>
-          <div className="logo-subtitle">
-            вкусно — и не только
-          </div>
+          <div className="logo-subtitle">вкусно — и не только</div>
         </div>
       </div>
 
-      {/* ПОИСК */}
+      {/* Поиск */}
       <div className="header-search">
         <span className="search-icon">⌕</span>
 
-        <input
-          type="text"
-          placeholder="Поиск пиццы..."
-        />
+        <input type="text" placeholder="Поиск пиццы..." />
       </div>
 
-      {/* ПРАВАЯ ЧАСТЬ */}
+      {/* Правая часть */}
       <div className="header-right">
-        {/* ПРОФИЛЬ */}
+        {/* Профиль */}
         <div className="profile-container">
           <button
             className="profile-button"
             onClick={() => setProfileOpen(!profileOpen)}
           >
             <span className="profile-icon">♙</span>
-
-            <span>
-              {user ? "Профиль" : "Войти"}
-            </span>
+            <span>{user ? "Профиль" : "Войти"}</span>
           </button>
 
           {profileOpen && (
             <div className="profile-dropdown">
               {user ? (
                 <>
-                  <div className="profile-user">
-                    {user}
-                  </div>
+                  <div className="profile-user">{user}</div>
 
                   <button
                     className="dropdown-item"
@@ -86,24 +75,19 @@ export default function Header({
           )}
         </div>
 
-        {/* КОРЗИНА */}
-        <button
-          className="header-cart"
-          onClick={onCart}
-        >
-          <span className="cart-price">
-            {formatPrice(cartTotal)}
-          </span>
+        {/* Корзина */}
+        <button className="header-cart" onClick={onCart}>
+          <span className="cart-price">{formatPrice(cartTotal)}</span>
 
           <span className="cart-divider"></span>
 
           <span className="cart-icon">🛒</span>
 
-          <span className="cart-count">
-            {cartCount}
-          </span>
+          <span className="cart-count">{cartCount}</span>
         </button>
       </div>
     </header>
   );
 }
+
+export default Header;
