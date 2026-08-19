@@ -1,0 +1,349 @@
+.header {
+  width: 100%;
+  min-height: 76px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 42px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #f1f1f1;
+
+  box-sizing: border-box;
+}
+
+/* =========================
+   LOGO
+========================= */
+
+.header-logo {
+  display: flex;
+  align-items: center;
+
+  min-width: 210px;
+
+  cursor: pointer;
+}
+
+.logo-icon {
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ff5c00;
+
+  font-size: 24px;
+}
+
+.logo-text {
+  margin-left: 8px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-title {
+  font-size: 17px;
+  font-weight: 800;
+
+  letter-spacing: -0.5px;
+
+  color: #222;
+}
+
+.logo-subtitle {
+  margin-top: 1px;
+
+  font-size: 8px;
+  font-weight: 500;
+
+  color: #999;
+}
+
+/* =========================
+   SEARCH
+========================= */
+
+.header-search {
+  flex: 1;
+
+  max-width: 430px;
+
+  height: 42px;
+
+  margin-left: 35px;
+
+  display: flex;
+  align-items: center;
+
+  border: 1px solid #eeeeee;
+
+  border-radius: 12px;
+
+  background: #fafafa;
+}
+
+.search-icon {
+  margin-left: 15px;
+
+  color: #999;
+
+  font-size: 22px;
+}
+
+.header-search input {
+  width: 100%;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  padding: 0 12px;
+
+  font-size: 14px;
+
+  color: #333;
+}
+
+.header-search input::placeholder {
+  color: #aaa;
+}
+
+/* =========================
+   RIGHT
+========================= */
+
+.header-right {
+  margin-left: auto;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+/* =========================
+   PROFILE
+========================= */
+
+.profile-container {
+  position: relative;
+}
+
+.profile-button {
+  height: 42px;
+
+  padding: 0 16px;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  background: #fff;
+
+  border: 1px solid #dedede;
+
+  border-radius: 11px;
+
+  color: #333;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.profile-button:hover {
+  border-color: #ff5c00;
+  color: #ff5c00;
+}
+
+.profile-icon {
+  font-size: 17px;
+}
+
+/* =========================
+   PROFILE DROPDOWN
+========================= */
+
+.profile-dropdown {
+  position: absolute;
+
+  top: 49px;
+  right: 0;
+
+  width: 180px;
+
+  padding: 8px;
+
+  background: white;
+
+  border: 1px solid #eeeeee;
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.12);
+
+  z-index: 1000;
+}
+
+.profile-user {
+  padding: 10px 12px;
+
+  font-size: 13px;
+
+  color: #555;
+
+  border-bottom: 1px solid #eeeeee;
+}
+
+.dropdown-item {
+  width: 100%;
+
+  padding: 10px 12px;
+
+  margin-top: 4px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: transparent;
+
+  text-align: left;
+
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: #fff1e9;
+
+  color: #ff5c00;
+}
+
+/* =========================
+   CART
+========================= */
+
+.header-cart {
+  height: 42px;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+
+  border: none;
+
+  border-radius: 11px;
+
+  background: #ff5c00;
+
+  color: white;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.header-cart:hover {
+  background: #e95200;
+
+  transform: translateY(-1px);
+}
+
+.cart-price {
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+.cart-divider {
+  width: 1px;
+  height: 19px;
+
+  margin: 0 10px;
+
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.cart-icon {
+  font-size: 15px;
+}
+
+.cart-count {
+  margin-left: 5px;
+
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+/* =========================
+   ADAPTIVE
+========================= */
+
+@media (max-width: 900px) {
+  .header {
+    padding: 0 20px;
+  }
+
+  .header-search {
+    margin-left: 15px;
+  }
+
+  .logo-subtitle {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .header {
+    min-height: 65px;
+
+    padding: 0 14px;
+  }
+
+  .header-logo {
+    min-width: auto;
+  }
+
+  .logo-title {
+    font-size: 14px;
+  }
+
+  .header-search {
+    display: none;
+  }
+
+  .profile-button {
+    padding: 0 10px;
+  }
+
+  .profile-button span:last-child {
+    display: none;
+  }
+
+  .header-cart {
+    padding: 0 10px;
+  }
+
+  .cart-price {
+    display: none;
+  }
+
+  .cart-divider {
+    display: none;
+  }
+}
