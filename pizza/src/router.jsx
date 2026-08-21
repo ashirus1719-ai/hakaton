@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import Layout from "./components/Layout/Layout";
 import Home from "./pages/Home";
 import Panel from "./pages/Panel";
+import NotFound from "./components/NotFound/NotFound";
+
 
 const routes = [
   {
@@ -15,6 +17,10 @@ const routes = [
   {
     path: "/panel",
     element: <Panel />,
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ];
 

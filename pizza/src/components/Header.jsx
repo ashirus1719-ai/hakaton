@@ -29,7 +29,10 @@ function Header({
       <div className="header-search">
         <span className="search-icon">⌕</span>
 
-        <input type="text" placeholder="Поиск пиццы..." />
+        <input
+          type="text"
+          placeholder="Поиск пиццы..."
+        />
       </div>
 
       {/* Правая часть */}
@@ -41,6 +44,7 @@ function Header({
             onClick={() => setProfileOpen(!profileOpen)}
           >
             <span className="profile-icon">♙</span>
+
             <span>{user ? "Профиль" : "Войти"}</span>
           </button>
 
@@ -76,8 +80,13 @@ function Header({
         </div>
 
         {/* Корзина */}
-        <button className="header-cart" onClick={onCart}>
-          <span className="cart-price">{formatPrice(cartTotal)}</span>
+        <button
+          className="header-cart"
+          onClick={onCart}
+        >
+          <span className="cart-price">
+            {formatPrice(cartTotal)}
+          </span>
 
           <span className="cart-divider"></span>
 
@@ -91,3 +100,8 @@ function Header({
 }
 
 export default Header;
+
+
+
+
+
