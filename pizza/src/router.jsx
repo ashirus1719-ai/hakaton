@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Layout from "./components/Layout/Layout";
 import Home from "./pages/Home";
 import Panel from "./pages/Panel";
+import NotFound from "./pages/NotFound";
 
 
 const routes = [
