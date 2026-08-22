@@ -239,55 +239,75 @@ body {
 .pizza-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
+  gap: 24px;
 }
 
 .pizza-card {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 18px;
+  box-shadow: 0 8px 22px rgba(38, 38, 38, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .pizza-image-box {
-  background-color: #fff5ee;
-  border-radius: 20px;
-  height: 240px;
+  /* Контейнер не создаёт фон, отступы или фиксированную высоту. */
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  margin-bottom: 16px;
+  min-height: 170px;
+  margin-bottom: 10px;
+  overflow: visible;
 }
 
 .pizza-image-box img {
-  width: 200px;
-  height: 200px;
+  display: block;
+  width: 170px;
+  max-width: 100%;
+  height: auto;
+  max-height: 170px;
   object-fit: contain;
   transition: transform 0.2s ease;
 }
 
+.pizza-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(38, 38, 38, 0.1);
+}
+
 .pizza-card:hover .pizza-image-box img {
-  transform: translateY(3px);
+  transform: scale(1.02);
 }
 
 .customise-badge {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  padding: 6px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(38, 38, 38, 0.12);
   color: #ff6900;
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .pizza-title {
   font-size: 20px;
   font-weight: 700;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
 }
 
 .pizza-description {
   font-size: 13px;
   color: #a5a5a5;
   line-height: 1.4;
-  margin: 0 0 20px 0;
+  margin: 0 0 14px 0;
   flex-grow: 1;
 }
 

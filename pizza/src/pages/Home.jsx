@@ -14,9 +14,12 @@ const CATEGORIES = [
   { label: "С курицей", key: "isChicken" },
 ];
 
+// Вспомогательная функция для корректной проверки boolean-флагов из бэкенда
+const isTrue = (val) => val === true || val === "true" || val === 1 || val === "1";
+
 function Home() {
-  const [allPizzas, setAllPizzas] = useState([]); // Все данные с бэкенда
-  const [filteredPizzas, setFilteredPizzas] = useState([]); // Отфильтрованный список
+  const [allPizzas, setAllPizzas] = useState([]);
+  const [filteredPizzas, setFilteredPizzas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [cartCounts, setCartCounts] = useState({});
 
@@ -44,7 +47,6 @@ function Home() {
     try {
       const response = await axios.get(API_URL);
       setAllPizzas(response.data);
-      applyAllFilters(response.data, activeCategory);
     } catch (error) {
       console.error("Ошибка при загрузке пицц:", error);
     } finally {
@@ -52,37 +54,41 @@ function Home() {
     }
   };
 
-  // 2. Функция полной фильтрации (по всем boolean-флагам)
-  const applyAllFilters = (dataList = allPizzas, category = activeCategory) => {
-    let result = [...dataList];
+  useEffect(() => {
+    fetchPizzas();
+  }, []);
+
+  // 2. Автоматическая фильтрация при изменении любого состояния
+  useEffect(() => {
+    let result = [...allPizzas];
 
     // Фильтр по верхней категории (isMeat, isSpicy, etc.)
-    if (category !== "all") {
-      result = result.filter((item) => item[category] === true);
+    if (activeCategory !== "all") {
+      result = result.filter((item) => isTrue(item[activeCategory]));
     }
 
     // Фильтр: Можно собирать
     if (canCustomise) {
-      result = result.filter((item) => item.canCustomise === true);
+      result = result.filter((item) => isTrue(item.canCustomise));
     }
 
     // Фильтр: Новинки
     if (isNew) {
-      result = result.filter((item) => item.isNew === true);
+      result = result.filter((item) => isTrue(item.isNew));
     }
 
     // Фильтр по цене
     if (priceFrom !== "") {
-      result = result.filter((item) => item.price >= Number(priceFrom));
+      result = result.filter((item) => Number(item.price) >= Number(priceFrom));
     }
     if (priceTo !== "") {
-      result = result.filter((item) => item.price <= Number(priceTo));
+      result = result.filter((item) => Number(item.price) <= Number(priceTo));
     }
 
-    // Фильтр по ингредиентам (Boolean)
+    // Фильтр по ингредиентам
     Object.keys(ingredients).forEach((key) => {
       if (ingredients[key]) {
-        result = result.filter((item) => item[key] === true);
+        result = result.filter((item) => isTrue(item[key]));
       }
     });
 
@@ -92,16 +98,20 @@ function Home() {
     }
 
     setFilteredPizzas(result);
-  };
-
-  useEffect(() => {
-    fetchPizzas();
-  }, []);
+  }, [
+    allPizzas,
+    activeCategory,
+    canCustomise,
+    isNew,
+    priceFrom,
+    priceTo,
+    doughType,
+    ingredients,
+  ]);
 
   // Переключение верхней категории
   const handleCategorySelect = (key) => {
     setActiveCategory(key);
-    applyAllFilters(allPizzas, key);
   };
 
   // Обработка чекбоксов ингредиентов
@@ -112,9 +122,22 @@ function Home() {
     }));
   };
 
-  // Нажатие на кнопку «Применить»
-  const handleApplyClick = () => {
-    applyAllFilters();
+  // Сброс всех фильтров
+  const handleResetFilters = () => {
+    setActiveCategory("all");
+    setCanCustomise(false);
+    setIsNew(false);
+    setPriceFrom("");
+    setPriceTo("");
+    setDoughType("");
+    setIngredients({
+      hasCheeseSauce: false,
+      hasMozzarella: false,
+      hasGarlic: false,
+      hasPickles: false,
+      hasRedOnion: false,
+      hasTomatoes: false,
+    });
   };
 
   // Счетчик корзины
@@ -151,7 +174,6 @@ function Home() {
                 {cat.label}
               </button>
             ))}
-            <button className="category-btn dropdown">Ещё ∨</button>
           </div>
 
           <div className="sorting">
@@ -297,8 +319,8 @@ function Home() {
             </label>
           </div>
 
-          <button className="apply-btn" onClick={handleApplyClick}>
-            Применить
+          <button className="apply-btn" onClick={handleResetFilters}>
+            Сбросить фильтры
           </button>
         </aside>
 
@@ -317,7 +339,7 @@ function Home() {
                 return (
                   <div key={pizza.id} className="pizza-card">
                     <div className="pizza-image-box">
-                      {pizza.canCustomise && (
+                      {isTrue(pizza.canCustomise) && (
                         <span className="customise-badge">⚙️</span>
                       )}
                       <img src={getImageUrl(pizza.imageUrl)} alt={pizza.title} />
@@ -329,7 +351,7 @@ function Home() {
                     <div className="pizza-card-footer">
                       <span className="pizza-price">от {pizza.price} ₽</span>
 
-                      {pizza.canCustomise ? (
+                      {isTrue(pizza.canCustomise) ? (
                         <button className="btn-customise">
                           <span>⚙️</span> Собрать
                         </button>
@@ -358,9 +380,7 @@ function Home() {
           <div className="pagination">
             <button className="page-arrow" disabled>‹</button>
             <button className="page-num active">1</button>
-            <button className="page-num">2</button>
-            <button className="page-num">3</button>
-            <button className="page-arrow">›</button>
+            <button className="page-arrow" disabled>›</button>
             <span className="page-info">{filteredPizzas.length} из {allPizzas.length}</span>
           </div>
         </main>

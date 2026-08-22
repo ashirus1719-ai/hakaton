@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Layout from "./components/Layout/Layout";
 import Home from "./pages/Home";
 import Panel from "./pages/Panel";
-import NotFound from "./components/NotFound/NotFound";
 
 
 const routes = [
@@ -35,7 +34,7 @@ function NotFound() {
   );
 }
 
-export function navigate(path) {
+function navigate(path) {
   window.history.pushState({}, "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
