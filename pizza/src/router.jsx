@@ -24,7 +24,7 @@ const routes = [
   },
 ];
 
-function NotFound() {
+function NotFoundFallback() {
   return (
     <main>
       <h1>Страница не найдена</h1>
@@ -58,9 +58,11 @@ export default function Router() {
   const pathname = usePathname();
 
   const currentRoute = useMemo(
-    () => routes.find((route) => route.path === pathname),
+    () =>
+      routes.find((route) => route.path === pathname) ??
+      routes.find((route) => route.path === "*"),
     [pathname]
   );
 
-  return <Layout>{currentRoute?.element ?? <NotFound />}</Layout>;
+  return <Layout>{currentRoute?.element ?? <NotFoundFallback />}</Layout>;
 }
