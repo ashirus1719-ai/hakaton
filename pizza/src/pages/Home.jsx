@@ -1,310 +1,371 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import "../styles/Home.css";
 
-const products = [
-  {
-    id: 1,
-    title: "Сырный цыпленок",
-    description: "Цыпленок, моцарелла, сырный соус, томаты, чеснок",
-    price: 395,
-    category: "Сытные",
-    ingredients: ["cheese", "chicken", "tomato"],
-    dough: "traditional",
-    isNew: false,
-    canAssemble: true,
-    image: "cheese",
-  },
-  {
-    id: 2,
-    title: "Диабло",
-    description: "Острая чоризо, острый перец халапеньо, соус барбекю",
-    price: 449,
-    category: "Острые",
-    ingredients: ["cheese", "cucumber", "tomato"],
-    dough: "thin",
-    isNew: true,
-    canAssemble: false,
-    image: "diablo",
-  },
-  {
-    id: 3,
-    title: "Чизбургер-пицца",
-    description: "Мясной соус болоньезе, сыр бургер, соленые огурчики",
-    price: 399,
-    category: "Мясные",
-    ingredients: ["cheese", "cucumber", "tomato"],
-    dough: "traditional",
-    isNew: false,
-    canAssemble: true,
-    image: "burger",
-  },
-  {
-    id: 4,
-    title: "Пепперони фреш",
-    description: "Пепперони, моцарелла, томаты и фирменный томатный соус",
-    price: 425,
-    category: "Классика",
-    ingredients: ["cheese", "tomato"],
-    dough: "traditional",
-    isNew: true,
-    canAssemble: false,
-    image: "pepperoni",
-  },
-  {
-    id: 5,
-    title: "Маргарита",
-    description: "Моцарелла, томаты, итальянские травы и томатный соус",
-    price: 349,
-    category: "Классика",
-    ingredients: ["cheese", "tomato"],
-    dough: "thin",
-    isNew: false,
-    canAssemble: true,
-    image: "cheese",
-  },
-  {
-    id: 6,
-    title: "Овощная",
-    description: "Сладкий перец, томаты, красный лук, сыр и соус ранч",
-    price: 379,
-    category: "Овощные",
-    ingredients: ["cheese", "tomato", "onion"],
-    dough: "traditional",
-    isNew: false,
-    canAssemble: true,
-    image: "burger",
-  },
-];
+const API_BASE_URL = "https://pizza-api-pj4j.onrender.com";
+const API_URL = `${API_BASE_URL}/api/v1/pizzas`;
 
-const ingredientOptions = [
-  { id: "cheese", label: "Сырный соус" },
-  { id: "mozzarella", label: "Моцарелла" },
-  { id: "onion", label: "Лук" },
-  { id: "cucumber", label: "Соленые огурчики" },
-  { id: "tomato", label: "Томаты" },
+const CATEGORIES = [
+  { label: "Все", key: "all" },
+  { label: "Мясные", key: "isMeat" },
+  { label: "Острые", key: "isSpicy" },
+  { label: "Сладкие", key: "isSweet" },
+  { label: "Вегетарианские", key: "isVegetarian" },
+  { label: "С курицей", key: "isChicken" },
 ];
-
-const initialFilters = {
-  canAssemble: true,
-  isNew: false,
-  minPrice: "",
-  maxPrice: "",
-  ingredients: ["cheese"],
-  dough: "traditional",
-};
 
 function Home() {
-  const [filters, setFilters] = useState(initialFilters);
-  const [counts, setCounts] = useState({});
-  const [activePage, setActivePage] = useState(1);
+  const [allPizzas, setAllPizzas] = useState([]); // Все данные с бэкенда
+  const [filteredPizzas, setFilteredPizzas] = useState([]); // Отфильтрованный список
+  const [loading, setLoading] = useState(false);
+  const [cartCounts, setCartCounts] = useState({});
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const minPrice = Number(filters.minPrice) || 0;
-      const maxPrice = Number(filters.maxPrice) || Infinity;
-      const hasIngredients = filters.ingredients.every((ingredient) =>
-        product.ingredients.includes(ingredient)
-      );
+  // Состояния фильтров
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [canCustomise, setCanCustomise] = useState(false);
+  const [isNew, setIsNew] = useState(false);
+  const [priceFrom, setPriceFrom] = useState("");
+  const [priceTo, setPriceTo] = useState("");
+  const [doughType, setDoughType] = useState("");
 
-      return (
-        product.price >= minPrice &&
-        product.price <= maxPrice &&
-        product.dough === filters.dough &&
-        (!filters.canAssemble || product.canAssemble) &&
-        (!filters.isNew || product.isNew) &&
-        hasIngredients
-      );
+  // Ингредиенты (Boolean)
+  const [ingredients, setIngredients] = useState({
+    hasCheeseSauce: false,
+    hasMozzarella: false,
+    hasGarlic: false,
+    hasPickles: false,
+    hasRedOnion: false,
+    hasTomatoes: false,
+  });
+
+  // 1. Загрузка данных с бэкенда
+  const fetchPizzas = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(API_URL);
+      setAllPizzas(response.data);
+      applyAllFilters(response.data, activeCategory);
+    } catch (error) {
+      console.error("Ошибка при загрузке пицц:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 2. Функция полной фильтрации (по всем boolean-флагам)
+  const applyAllFilters = (dataList = allPizzas, category = activeCategory) => {
+    let result = [...dataList];
+
+    // Фильтр по верхней категории (isMeat, isSpicy, etc.)
+    if (category !== "all") {
+      result = result.filter((item) => item[category] === true);
+    }
+
+    // Фильтр: Можно собирать
+    if (canCustomise) {
+      result = result.filter((item) => item.canCustomise === true);
+    }
+
+    // Фильтр: Новинки
+    if (isNew) {
+      result = result.filter((item) => item.isNew === true);
+    }
+
+    // Фильтр по цене
+    if (priceFrom !== "") {
+      result = result.filter((item) => item.price >= Number(priceFrom));
+    }
+    if (priceTo !== "") {
+      result = result.filter((item) => item.price <= Number(priceTo));
+    }
+
+    // Фильтр по ингредиентам (Boolean)
+    Object.keys(ingredients).forEach((key) => {
+      if (ingredients[key]) {
+        result = result.filter((item) => item[key] === true);
+      }
     });
-  }, [filters]);
 
-  const updateFilter = (name, value) => {
-    setFilters((currentFilters) => ({
-      ...currentFilters,
-      [name]: value,
+    // Фильтр по типу теста
+    if (doughType) {
+      result = result.filter((item) => item.doughType === doughType);
+    }
+
+    setFilteredPizzas(result);
+  };
+
+  useEffect(() => {
+    fetchPizzas();
+  }, []);
+
+  // Переключение верхней категории
+  const handleCategorySelect = (key) => {
+    setActiveCategory(key);
+    applyAllFilters(allPizzas, key);
+  };
+
+  // Обработка чекбоксов ингредиентов
+  const handleIngredientChange = (key) => {
+    setIngredients((prev) => ({
+      ...prev,
+      [key]: !prev[key],
     }));
   };
 
-  const toggleIngredient = (ingredient) => {
-    setFilters((currentFilters) => {
-      const ingredients = currentFilters.ingredients.includes(ingredient)
-        ? currentFilters.ingredients.filter((item) => item !== ingredient)
-        : [...currentFilters.ingredients, ingredient];
+  // Нажатие на кнопку «Применить»
+  const handleApplyClick = () => {
+    applyAllFilters();
+  };
 
-      return {
-        ...currentFilters,
-        ingredients,
-      };
+  // Счетчик корзины
+  const updateCartCount = (id, delta) => {
+    setCartCounts((prev) => {
+      const current = prev[id] || 0;
+      const updated = current + delta;
+      if (updated <= 0) {
+        const { [id]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [id]: updated };
     });
   };
 
-  const changeCount = (productId, value) => {
-    setCounts((currentCounts) => ({
-      ...currentCounts,
-      [productId]: Math.max((currentCounts[productId] || 0) + value, 0),
-    }));
+  const getImageUrl = (url) => {
+    if (!url) return "";
+    return url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
   };
 
   return (
-    <main className="home-page">
-      <aside className="filters">
-        <h2>Фильтрация</h2>
+    <div className="home-container">
+      {/* Шапка: категории и сортировка */}
+      <div className="top-bar">
+        <h1 className="main-title">Все пиццы</h1>
+        <div className="top-bar-controls">
+          <div className="categories">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.key}
+                className={`category-btn ${activeCategory === cat.key ? "active" : ""}`}
+                onClick={() => handleCategorySelect(cat.key)}
+              >
+                {cat.label}
+              </button>
+            ))}
+            <button className="category-btn dropdown">Ещё ∨</button>
+          </div>
 
-        <div className="filter-group">
-          <label className="check-row">
-            <input
-              type="checkbox"
-              checked={filters.canAssemble}
-              onChange={(event) =>
-                updateFilter("canAssemble", event.target.checked)
-              }
-            />
-            Можно собрать
-          </label>
-
-          <label className="check-row">
-            <input
-              type="checkbox"
-              checked={filters.isNew}
-              onChange={(event) => updateFilter("isNew", event.target.checked)}
-            />
-            Новинки
-          </label>
-        </div>
-
-        <div className="filter-group">
-          <h3>Цена от и до:</h3>
-          <div className="price-row">
-            <input
-              type="number"
-              placeholder="0"
-              value={filters.minPrice}
-              onChange={(event) => updateFilter("minPrice", event.target.value)}
-            />
-            <input
-              type="number"
-              placeholder="1950"
-              value={filters.maxPrice}
-              onChange={(event) => updateFilter("maxPrice", event.target.value)}
-            />
+          <div className="sorting">
+            <span>⇅ Сортировка:</span>
+            <span className="sort-value"> рейтингу</span>
           </div>
         </div>
+      </div>
 
-        <div className="filter-group">
-          <h3>Ингредиенты:</h3>
-          {ingredientOptions.map((ingredient) => (
-            <label className="check-row" key={ingredient.id}>
+      {/* Основной контент */}
+      <div className="content-layout">
+        {/* Боковая панель фильтрации */}
+        <aside className="sidebar">
+          <h3>Фильтрация</h3>
+
+          <div className="filter-group">
+            <label className="checkbox-label">
               <input
                 type="checkbox"
-                checked={filters.ingredients.includes(ingredient.id)}
-                onChange={() => toggleIngredient(ingredient.id)}
+                checked={canCustomise}
+                onChange={(e) => setCanCustomise(e.target.checked)}
               />
-              {ingredient.label}
+              <span className="custom-checkbox"></span>
+              Можно собирать
             </label>
-          ))}
-          <button className="show-more" type="button">
-            + Показать все
-          </button>
-        </div>
 
-        <div className="filter-group">
-          <h3>Тип теста:</h3>
-          <label className="check-row">
-            <input
-              type="radio"
-              name="dough"
-              checked={filters.dough === "traditional"}
-              onChange={() => updateFilter("dough", "traditional")}
-            />
-            Традиционное
-          </label>
-          <label className="check-row">
-            <input
-              type="radio"
-              name="dough"
-              checked={filters.dough === "thin"}
-              onChange={() => updateFilter("dough", "thin")}
-            />
-            Тонкое
-          </label>
-        </div>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={isNew}
+                onChange={(e) => setIsNew(e.target.checked)}
+              />
+              <span className="custom-checkbox"></span>
+              Новинки
+            </label>
+          </div>
 
-        <button className="apply-filter" type="button" onClick={() => setActivePage(1)}>
-          Применить
-        </button>
-      </aside>
-
-      <section className="catalog">
-        <div className="product-grid">
-          {filteredProducts.map((product) => (
-            <article className="product-card" key={product.id}>
-              <div className="product-image-wrap">
-                <span className="product-badge">{product.category}</span>
-                <button className="product-settings" type="button" aria-label="Настроить товар">
-                  ⚙
-                </button>
-                <div className={`pizza-preview pizza-${product.image}`}>
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                </div>
+          <div className="filter-group">
+            <h4>Цена от и до:</h4>
+            <div className="price-inputs">
+              <div className="price-input-wrapper">
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={priceFrom}
+                  onChange={(e) => setPriceFrom(e.target.value)}
+                />
+                <span className="currency">₽</span>
               </div>
+              <div className="price-input-wrapper">
+                <input
+                  type="number"
+                  placeholder="1950"
+                  value={priceTo}
+                  onChange={(e) => setPriceTo(e.target.value)}
+                />
+                <span className="currency">₽</span>
+              </div>
+            </div>
+          </div>
 
-              <h3>{product.title}</h3>
-              <p>{product.description}</p>
+          <div className="filter-group">
+            <h4>Ингредиенты:</h4>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={ingredients.hasCheeseSauce}
+                onChange={() => handleIngredientChange("hasCheeseSauce")}
+              />
+              <span className="custom-checkbox"></span>
+              Сырный соус
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={ingredients.hasMozzarella}
+                onChange={() => handleIngredientChange("hasMozzarella")}
+              />
+              <span className="custom-checkbox"></span>
+              Моцарелла
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={ingredients.hasGarlic}
+                onChange={() => handleIngredientChange("hasGarlic")}
+              />
+              <span className="custom-checkbox"></span>
+              Чеснок
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={ingredients.hasPickles}
+                onChange={() => handleIngredientChange("hasPickles")}
+              />
+              <span className="custom-checkbox"></span>
+              Солёные огурчики
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={ingredients.hasRedOnion}
+                onChange={() => handleIngredientChange("hasRedOnion")}
+              />
+              <span className="custom-checkbox"></span>
+              Красный лук
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={ingredients.hasTomatoes}
+                onChange={() => handleIngredientChange("hasTomatoes")}
+              />
+              <span className="custom-checkbox"></span>
+              Томаты
+            </label>
+          </div>
 
-              <div className="product-actions">
-                <strong>от {product.price} ₽</strong>
-                {(counts[product.id] || 0) === 0 ? (
-                  <button
-                    className="add-button"
-                    type="button"
-                    onClick={() => changeCount(product.id, 1)}
-                  >
-                    + Добавить
-                  </button>
-                ) : (
-                  <div className="quantity">
-                    <button type="button" onClick={() => changeCount(product.id, -1)}>
-                      −
-                    </button>
-                    <span>{counts[product.id]}</span>
-                    <button type="button" onClick={() => changeCount(product.id, 1)}>
-                      +
-                    </button>
+          <div className="filter-group">
+            <h4>Тип теста:</h4>
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="dough"
+                value="traditional"
+                checked={doughType === "traditional"}
+                onChange={(e) => setDoughType(e.target.value)}
+              />
+              <span className="custom-radio"></span>
+              Традиционное
+            </label>
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="dough"
+                value="thin"
+                checked={doughType === "thin"}
+                onChange={(e) => setDoughType(e.target.value)}
+              />
+              <span className="custom-radio"></span>
+              Тонкое
+            </label>
+          </div>
+
+          <button className="apply-btn" onClick={handleApplyClick}>
+            Применить
+          </button>
+        </aside>
+
+        {/* Сетка карточек пицц */}
+        <main className="main-content">
+          {loading ? (
+            <div className="loading">Загрузка пицц...</div>
+          ) : filteredPizzas.length === 0 ? (
+            <div style={{ padding: "40px 0", fontSize: "18px", color: "#888" }}>
+              Пиццы по выбранным фильтрам не найдены 🍕
+            </div>
+          ) : (
+            <div className="pizza-grid">
+              {filteredPizzas.map((pizza) => {
+                const count = cartCounts[pizza.id] || 0;
+                return (
+                  <div key={pizza.id} className="pizza-card">
+                    <div className="pizza-image-box">
+                      {pizza.canCustomise && (
+                        <span className="customise-badge">⚙️</span>
+                      )}
+                      <img src={getImageUrl(pizza.imageUrl)} alt={pizza.title} />
+                    </div>
+
+                    <h3 className="pizza-title">{pizza.title}</h3>
+                    <p className="pizza-description">{pizza.description}</p>
+
+                    <div className="pizza-card-footer">
+                      <span className="pizza-price">от {pizza.price} ₽</span>
+
+                      {pizza.canCustomise ? (
+                        <button className="btn-customise">
+                          <span>⚙️</span> Собрать
+                        </button>
+                      ) : count > 0 ? (
+                        <div className="counter-btn">
+                          <button onClick={() => updateCartCount(pizza.id, -1)}>−</button>
+                          <span>{count}</span>
+                          <button onClick={() => updateCartCount(pizza.id, 1)}>+</button>
+                        </div>
+                      ) : (
+                        <button
+                          className="btn-add"
+                          onClick={() => updateCartCount(pizza.id, 1)}
+                        >
+                          + Добавить
+                        </button>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-            </article>
-          ))}
-        </div>
+                );
+              })}
+            </div>
+          )}
 
-        {filteredProducts.length === 0 && (
-          <div className="empty-products">Под эти фильтры товаров пока нет</div>
-        )}
-
-        <div className="pagination">
-          <button type="button" disabled={activePage === 1} onClick={() => setActivePage(activePage - 1)}>
-            ‹
-          </button>
-          {[1, 2, 3].map((page) => (
-            <button
-              className={activePage === page ? "active" : ""}
-              type="button"
-              key={page}
-              onClick={() => setActivePage(page)}
-            >
-              {page}
-            </button>
-          ))}
-          <button type="button" onClick={() => setActivePage(activePage + 1)}>
-            ›
-          </button>
-          <span>10 из 65</span>
-        </div>
-      </section>
-    </main>
+          {/* Пагинация */}
+          <div className="pagination">
+            <button className="page-arrow" disabled>‹</button>
+            <button className="page-num active">1</button>
+            <button className="page-num">2</button>
+            <button className="page-num">3</button>
+            <button className="page-arrow">›</button>
+            <span className="page-info">{filteredPizzas.length} из {allPizzas.length}</span>
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }
 
